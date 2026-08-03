@@ -31,7 +31,7 @@ Larry Williams 식 **변동성 돌파 전략** (롱 온리) — [next-trading-co
 
 | 키 | 기본값 | 의미 | 조정 효과 |
 |---|---|---|---|
-| `larry.symbol` | AAPL | 감시 종목 | 변동성 큰 종목일수록 신호 빈도 증가 |
+| `larry.symbols` | AAPL | 감시 종목 목록 (쉼표 구분) | 종목별 독립 진입/청산. 예산은 종목 수로 분배 |
 | `larry.lookback` | 24 | 평균 몸통 계산 캔들 수 (시간) | 크게 → 기준이 둔해져 신호 감소, 작게 → 민감 |
 | `larry.multiplier` | 1.2 | 돌파 판정 배수 | 크게 → 더 확실한 돌파만 진입 (빈도↓ 신뢰↑) |
 | `larry.expire-hours` | 48 | 만료 청산 시간 | 짧게 → 회전율↑, 길게 → 추세 수익 극대화 |
@@ -55,7 +55,7 @@ Larry Williams 식 **변동성 돌파 전략** (롱 온리) — [next-trading-co
 - **손절 강화**: `Signal.Buy(stopLossPrice = target.open)` 을 `price × 0.98` 같은 고정 비율로 바꾸면 갭 하락 리스크가 줄어듭니다
 - **익절 추가**: `takeProfitPrice` 를 함께 지정하면 만료 전 목표가 도달 시 자동 익절합니다
 - **캔들 주기 변경**: `spec.candleInterval` 을 `DAY_1` 로 바꾸면 일봉 돌파 전략이 됩니다 (`expire-hours` 도 함께 늘릴 것)
-- **다중 종목**: `TradingStrategy` 빈을 종목별로 여러 개 등록하면 각자 독립 실행됩니다 (전략 `name` 은 겹치지 않게)
+- **다중 종목**: `larry.symbols: AAPL,TSLA,NVDA` 처럼 나열하면 종목별 독립 상태로 동시 운용됩니다 (예산은 자동 분배)
 
 ## 실행
 

@@ -14,7 +14,7 @@ next:
     max-consecutive-failures: 5
 
 larry:
-  symbol: AAPL
+  symbols: AAPL,MSFT
   lookback: 24
   multiplier: 1.2
   expire-hours: 48

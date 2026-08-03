@@ -16,7 +16,7 @@ import java.time.ZonedDateTime
 class LarryStrategyTest {
 
     private val properties = LarryProperties(
-        symbol = "AAPL",
+        symbols = listOf("AAPL"),
         lookback = 5,
         multiplier = BigDecimal("1.2"),
         expireHours = 48,
@@ -111,7 +111,7 @@ class LarryStrategyTest {
     @Test
     fun `보유 중이고 만료 시간이 지나면 전량 매도한다`() {
         val now = ZonedDateTime.now()
-        strategy.entryAt = now.minusHours(49)
+        strategy.entryAt["AAPL"] = now.minusHours(49)
 
         val signals = strategy.decide(context(candles("100", "101"), holdingQty = "46", now = now))
 
@@ -123,7 +123,7 @@ class LarryStrategyTest {
     @Test
     fun `보유 중이지만 만료 전이면 아무것도 하지 않는다`() {
         val now = ZonedDateTime.now()
-        strategy.entryAt = now.minusHours(1)
+        strategy.entryAt["AAPL"] = now.minusHours(1)
 
         val signals = strategy.decide(context(candles("100", "101"), holdingQty = "46", now = now))
 
@@ -137,6 +137,6 @@ class LarryStrategyTest {
         val signals = strategy.decide(context(candles("100", "101"), holdingQty = "46", now = now))
 
         assertThat(signals).isEmpty()
-        assertThat(strategy.entryAt).isNotNull()
+        assertThat(strategy.entryAt["AAPL"]).isNotNull()
     }
 }
