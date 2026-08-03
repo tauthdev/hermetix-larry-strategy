@@ -1,12 +1,13 @@
 spring:
   application:
-    name: next-larry-strategy
+    name: hermetix-larry-strategy
 
 server:
   port: 8081
 
-next:
-  api:
+hermetix:
+  broker: next
+  next:
     client-id: ${NEXT_CLIENT_ID:}
     client-secret: ${NEXT_CLIENT_SECRET:}
     account-id: ${NEXT_ACCOUNT_ID:acc_main}
