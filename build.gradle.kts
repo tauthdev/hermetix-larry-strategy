@@ -5,7 +5,7 @@ plugins {
     id("io.spring.dependency-management") version "1.1.6"
 }
 
-group = "com.hanaset"
+group = "com.tripleauth"
 version = "0.0.1"
 
 java {
@@ -21,7 +21,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.tauthdev:next-trading-core:0.1.1")
+    implementation("com.github.tauthdev:next-trading-core:0.1.2")
     implementation("org.springframework.boot:spring-boot-starter-web")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")

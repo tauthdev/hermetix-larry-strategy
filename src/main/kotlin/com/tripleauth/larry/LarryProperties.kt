@@ -1,4 +1,4 @@
-package com.hanaset.larry
+package com.tripleauth.larry
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 import java.math.BigDecimal

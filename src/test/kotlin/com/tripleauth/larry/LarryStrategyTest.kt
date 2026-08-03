@@ -1,11 +1,11 @@
-package com.hanaset.larry
+package com.tripleauth.larry
 
-import com.hanaset.nexttrading.client.dto.AccountResponse
-import com.hanaset.nexttrading.client.dto.Candle
-import com.hanaset.nexttrading.client.dto.Holding
-import com.hanaset.nexttrading.client.dto.Quote
-import com.hanaset.nexttrading.strategy.Signal
-import com.hanaset.nexttrading.strategy.StrategyContext
+import com.tripleauth.nexttrading.client.dto.AccountResponse
+import com.tripleauth.nexttrading.client.dto.Candle
+import com.tripleauth.nexttrading.client.dto.Holding
+import com.tripleauth.nexttrading.client.dto.Quote
+import com.tripleauth.nexttrading.strategy.Signal
+import com.tripleauth.nexttrading.strategy.StrategyContext
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
