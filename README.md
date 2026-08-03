@@ -1,6 +1,6 @@
 # hermetix-larry-strategy
 
-Larry Williams 식 **변동성 돌파 전략** (롱 온리) — [hermetix-trading-core](https://github.com/tauthdev/hermetix-trading-core) 기반 넥스트증권 모의투자 봇.
+Larry Williams 식 **변동성 돌파 전략** (롱 온리) — [hermetix-trading-core](https://github.com/tauthdev/hermetix-trading-core) 기반 모의투자 봇.
 
 원본은 turtle-trading 프로젝트의 Bybit 백테스트 전략(`LarryTradingService`, 롱/숏 양방향)이며, 주식 모의투자 환경(공매도 불가)에 맞게 **롱 방향만** 이식했습니다.
 
@@ -41,6 +41,7 @@ Larry Williams 식 **변동성 돌파 전략** (롱 온리) — [hermetix-tradin
 ## 주의사항
 
 - **모의투자 학습용입니다.** 실제 투자 판단의 근거로 사용하지 마세요.
+- **기본 브로커는 넥스트증권(미국주식)입니다.** 이 전략은 1시간봉을 사용하므로, 일봉만 지원하는 KRX 브로커(kis/kiwoom)에서 쓰려면 `spec.candleInterval` 을 `DAY_1` 로 바꾸고 lookback/만료 시간을 일 단위로 재조정해야 합니다.
 - **손절 예약은 메모리에만 있습니다.** 앱을 재시작하면 소프트웨어 브라켓(시가 손절)이 사라집니다. 재시작 시 보유 포지션은 만료 클록만 다시 시작되므로, 재시작 후에는 포지션을 수동 점검하세요.
 - **손절은 시장가로 나갑니다.** 급락 갭에서는 예약가보다 불리하게 체결될 수 있습니다 (슬리피지).
 - **같은 심볼을 다른 전략과 동시에 돌리지 마세요.** 보유 수량/미체결 주문을 심볼 단위로 판단하므로, 두 전략이 같은 종목을 다루면 서로의 포지션을 침범합니다.
