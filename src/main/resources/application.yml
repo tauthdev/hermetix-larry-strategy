@@ -1,6 +1,6 @@
 spring:
   application:
-    name: larry-strategy
+    name: next-larry-strategy
 
 server:
   port: 8081
