@@ -1,4 +1,4 @@
-# larry-strategy
+# next-larry-strategy
 
 Larry Williams 식 **변동성 돌파 전략** (롱 온리) — [next-trading-core](https://github.com/tauthdev/next-trading-core) 기반 넥스트증권 모의투자 봇.
 
