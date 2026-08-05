@@ -14,7 +14,7 @@ Larry Williams 식 **변동성 돌파 전략** (롱 온리) — [hermetix-tradin
 매 틱 (기본 60초, 미국 정규장 중에만)
 │
 ├─ 보유 없음
-│   ├─ 직전 완성된 1시간봉의 몸통 |시가-종가| 계산
+│   ├─ 직전 완성된 캔들(기본 1시간봉, 설정 가능)의 몸통 |시가-종가| 계산
 │   ├─ 앞선 lookback(24)개 캔들의 평균 몸통 × multiplier(1.2) 와 비교
 │   ├─ 기준 미달 or 음봉 → 대기
 │   └─ 기준 초과 양봉 → 주문가능현금 × budget-ratio 만큼 시장가 매수
@@ -32,6 +32,7 @@ Larry Williams 식 **변동성 돌파 전략** (롱 온리) — [hermetix-tradin
 | 키 | 기본값 | 의미 | 조정 효과 |
 |---|---|---|---|
 | `larry.symbols` | AAPL | 감시 종목 목록 (쉼표 구분) | 종목별 독립 진입/청산. 예산은 종목 수로 분배 |
+| `larry.candle-interval` | 1h | 캔들 주기 (1m/5m/1h/1d) | KRX 브로커는 `1d` 필수. lookback/expire 도 주기에 맞게 조정 |
 | `larry.lookback` | 24 | 평균 몸통 계산 캔들 수 (시간) | 크게 → 기준이 둔해져 신호 감소, 작게 → 민감 |
 | `larry.multiplier` | 1.2 | 돌파 판정 배수 | 크게 → 더 확실한 돌파만 진입 (빈도↓ 신뢰↑) |
 | `larry.expire-hours` | 48 | 만료 청산 시간 | 짧게 → 회전율↑, 길게 → 추세 수익 극대화 |
@@ -41,7 +42,7 @@ Larry Williams 식 **변동성 돌파 전략** (롱 온리) — [hermetix-tradin
 ## 주의사항
 
 - **모의투자 학습용입니다.** 실제 투자 판단의 근거로 사용하지 마세요.
-- **기본 브로커는 넥스트증권(미국주식)입니다.** 이 전략은 1시간봉을 사용하므로, 일봉만 지원하는 KRX 브로커(kis/kiwoom)에서 쓰려면 `spec.candleInterval` 을 `DAY_1` 로 바꾸고 lookback/만료 시간을 일 단위로 재조정해야 합니다.
+- **기본 브로커는 넥스트증권(미국주식·1시간봉)입니다.** KRX 브로커(kis/kiwoom)는 일봉만 지원하므로 `candle-interval: 1d` 로 조정해야 하며, **동봉된 `kis`/`kiwoom` 프로파일에 이미 반영되어 있습니다** (아래 실행 참고).
 - **손절 예약은 메모리에만 있습니다.** 앱을 재시작하면 소프트웨어 브라켓(시가 손절)이 사라집니다. 재시작 시 보유 포지션은 만료 클록만 다시 시작되므로, 재시작 후에는 포지션을 수동 점검하세요.
 - **손절은 시장가로 나갑니다.** 급락 갭에서는 예약가보다 불리하게 체결될 수 있습니다 (슬리피지).
 - **같은 심볼을 다른 전략과 동시에 돌리지 마세요.** 보유 수량/미체결 주문을 심볼 단위로 판단하므로, 두 전략이 같은 종목을 다루면 서로의 포지션을 침범합니다.
@@ -61,7 +62,17 @@ Larry Williams 식 **변동성 돌파 전략** (롱 온리) — [hermetix-tradin
 ## 실행
 
 ```bash
-export NEXT_CLIENT_ID=pk_test_...
-export NEXT_CLIENT_SECRET=sk_test_...
+# 넥스트증권 (미국주식, 기본)
+export NEXT_CLIENT_ID=... NEXT_CLIENT_SECRET=...
 ./gradlew bootRun
+
+# 한국투자증권 모의투자 (KRX - 삼성전자/SK하이닉스, 일봉 프로파일 동봉)
+export KIS_APPKEY=... KIS_APPSECRET=... KIS_CANO=...
+SPRING_PROFILES_ACTIVE=kis ./gradlew bootRun
+
+# 키움 모의투자 (KRX)
+export KIWOOM_APPKEY=... KIWOOM_SECRETKEY=...
+SPRING_PROFILES_ACTIVE=kiwoom ./gradlew bootRun
 ```
+
+대상 종목/주기/기간은 `application-kis.yml`·`application-kiwoom.yml` 에서 조정하세요.
