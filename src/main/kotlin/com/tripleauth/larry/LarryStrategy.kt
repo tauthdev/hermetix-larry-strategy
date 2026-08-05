@@ -39,7 +39,7 @@ class LarryStrategy(
     override val spec = StrategySpec(
         name = "larry",
         symbols = properties.symbols,
-        candleInterval = CandleInterval.HOUR_1,
+        candleInterval = CandleInterval.entries.first { it.value == properties.candleInterval },
         candleLimit = properties.lookback + 2, // lookback + 판정 대상 + 진행 중 캔들
         pollInterval = Duration.ofSeconds(properties.pollSeconds),
     )

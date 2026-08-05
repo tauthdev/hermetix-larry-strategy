@@ -7,6 +7,8 @@ import java.math.BigDecimal
 data class LarryProperties(
     /** 감시 종목 목록. 종목마다 독립적으로 진입/청산한다 */
     val symbols: List<String> = listOf("AAPL"),
+    /** 캔들 주기 (1m/5m/1h/1d). KRX 브로커(kis/kiwoom)는 1d 만 지원 */
+    val candleInterval: String = "1h",
     /** 평균 몸통 크기를 계산할 직전 캔들 개수 */
     val lookback: Int = 24,
     /** 진입 조건: 몸통 크기 >= 평균 몸통 x multiplier */

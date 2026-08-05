@@ -1,0 +1,12 @@
+hermetix:
+  broker: kis
+  kis:
+    appkey: ${KIS_APPKEY:}
+    appsecret: ${KIS_APPSECRET:}
+    cano: ${KIS_CANO:}
+
+larry:
+  symbols: 005930,000660     # 삼성전자, SK하이닉스
+  candle-interval: 1d        # KRX 브로커는 일봉만 지원
+  lookback: 24               # 일봉 24개 평균 몸통
+  expire-hours: 120          # 5일 보유 후 만료 청산

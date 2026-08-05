@@ -1,0 +1,11 @@
+hermetix:
+  broker: kiwoom
+  kiwoom:
+    appkey: ${KIWOOM_APPKEY:}
+    secretkey: ${KIWOOM_SECRETKEY:}
+
+larry:
+  symbols: 005930,000660
+  candle-interval: 1d
+  lookback: 24
+  expire-hours: 120
