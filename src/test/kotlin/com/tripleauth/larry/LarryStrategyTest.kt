@@ -139,4 +139,32 @@ class LarryStrategyTest {
         assertThat(signals).isEmpty()
         assertThat(strategy.entryAt["AAPL"]).isNotNull()
     }
+
+    @Test
+    fun `재시작으로 발견한 포지션에 복구 손절가를 등록한다`() {
+        val signals = strategy.decide(context(candles("100", "101"), price = "105", holdingQty = "46"))
+
+        assertThat(signals).isEmpty()
+        // 평균단가 100 - 평균 몸통 1 x multiplier 1.2 = 98.8
+        assertThat(strategy.recoveryStops["AAPL"]).isEqualByComparingTo(BigDecimal("98.8"))
+    }
+
+    @Test
+    fun `복구 손절가를 하회하면 전량 청산한다`() {
+        val signals = strategy.decide(context(candles("100", "101"), price = "98.5", holdingQty = "46"))
+
+        assertThat(signals).hasSize(1)
+        val sell = signals[0] as Signal.Sell
+        assertThat(sell.quantity).isEqualByComparingTo(BigDecimal("46"))
+        assertThat(strategy.recoveryStops["AAPL"]).isNull()
+    }
+
+    @Test
+    fun `포지션이 사라지면 복구 손절가도 정리된다`() {
+        strategy.recoveryStops["AAPL"] = BigDecimal("98.8")
+
+        strategy.decide(context(candles("100", "101")))
+
+        assertThat(strategy.recoveryStops["AAPL"]).isNull()
+    }
 }

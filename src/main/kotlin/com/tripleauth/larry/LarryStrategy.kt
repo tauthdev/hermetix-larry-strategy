@@ -21,7 +21,9 @@ import java.util.concurrent.ConcurrentHashMap
  * 원본: turtle-trading 의 LarryTradingService (Bybit 백테스트, 롱/숏 양방향).
  * 모의투자 이관에서 바뀐 점:
  * - 공매도 불가 → 상승 돌파(양봉)만 진입한다
- * - 손절은 코어의 소프트웨어 브라켓에 위임한다 (stopLossPrice = 진입 캔들 시가)
+ * - 손절은 코어의 소프트웨어 브라켓에 위임한다 (stopLossPrice = 진입 캔들 시가).
+ *   브라켓은 메모리 상태라 재시작 시 소실되므로, 재시작 후 발견된 포지션은
+ *   복구 손절가를 등록해 전략이 직접 감시한다
  * - 만료 청산은 캔들 개수 대신 경과 시간으로 판정한다
  * - 종목별로 독립 상태를 유지하며, 예산은 종목 수로 나눠 배분한다
  *
@@ -50,6 +52,9 @@ class LarryStrategy(
     /** 종목별 진입 시각 — 만료 청산 판정용. 재시작 시 보유가 발견되면 그 시점부터 다시 센다 */
     internal val entryAt = ConcurrentHashMap<String, ZonedDateTime>()
 
+    /** 재시작으로 브라켓이 소실된 포지션의 복구 손절가 — 전략이 직접 감시한다 */
+    internal val recoveryStops = ConcurrentHashMap<String, BigDecimal>()
+
     override fun decide(context: StrategyContext): List<Signal> =
         properties.symbols.flatMap { symbol -> decideForSymbol(symbol, context) }
 
@@ -59,6 +64,7 @@ class LarryStrategy(
         }
 
         entryAt.remove(symbol)
+        recoveryStops.remove(symbol)
         if (context.hasOpenOrder(symbol)) return emptyList()
 
         return decideEntry(symbol, context)
@@ -75,9 +81,7 @@ class LarryStrategy(
         lastEvaluated[symbol] = target.timestamp
 
         val history = completed.dropLast(1).takeLast(properties.lookback)
-        val avgBody = history.map { it.body() }
-            .reduce(BigDecimal::add)
-            .divide(BigDecimal(history.size), 8, RoundingMode.HALF_EVEN)
+        val avgBody = averageBody(history)
 
         val targetBody = target.body()
         val threshold = avgBody.multiply(properties.multiplier)
@@ -115,20 +119,58 @@ class LarryStrategy(
     }
 
     private fun decideExit(symbol: String, context: StrategyContext): List<Signal> {
-        // 재시작 등으로 진입 시각을 모르면 지금부터 만료 시계를 다시 센다
-        val openedAt = entryAt.getOrPut(symbol) { context.now }
+        // 재시작 등으로 진입 시각을 모르면: 만료 시계를 다시 세고, 소실된 브라켓 대신
+        // 전략이 직접 감시할 복구 손절가를 등록한다
+        val openedAt = entryAt.getOrPut(symbol) {
+            registerRecoveryStop(symbol, context)
+            context.now
+        }
+
+        val quantity = context.holding(symbol)?.quantity ?: return emptyList()
+
+        val stop = recoveryStops[symbol]
+        val price = context.quote(symbol)?.price
+        if (stop != null && price != null && price <= stop) {
+            logger.info { "[$symbol] 복구 손절 청산 / price=$price <= stop=$stop" }
+            entryAt.remove(symbol)
+            recoveryStops.remove(symbol)
+            return listOf(Signal.Sell(symbol = symbol, quantity = quantity))
+        }
 
         if (Duration.between(openedAt, context.now) < Duration.ofHours(properties.expireHours)) {
             return emptyList()
         }
 
-        val quantity = context.holding(symbol)?.quantity ?: return emptyList()
-
         logger.info { "[$symbol] 만료 청산 / qty=$quantity (진입 후 ${properties.expireHours}시간 경과)" }
         entryAt.remove(symbol)
+        recoveryStops.remove(symbol)
 
         return listOf(Signal.Sell(symbol = symbol, quantity = quantity))
     }
+
+    /**
+     * 원본 손절가(진입 캔들 시가)는 재시작 후 알 수 없으므로,
+     * 진입 조건의 최소 몸통(평균 몸통 x multiplier)만큼 평균단가 아래로 근사한다.
+     */
+    private fun registerRecoveryStop(symbol: String, context: StrategyContext) {
+        val entryPrice = context.holding(symbol)?.avgEntryPrice ?: return
+        val completed = context.candles(symbol).dropLast(1)
+        if (completed.size < properties.lookback) {
+            logger.warn { "[$symbol] 복구 손절 계산 불가 (캔들 부족) - 만료 청산만 동작합니다" }
+            return
+        }
+
+        val avgBody = averageBody(completed.takeLast(properties.lookback))
+        val stop = entryPrice - avgBody.multiply(properties.multiplier)
+
+        recoveryStops[symbol] = stop
+        logger.info { "[$symbol] 복구 손절 등록 / stop=$stop (재시작으로 브라켓 소실, 평균단가=$entryPrice)" }
+    }
+
+    private fun averageBody(history: List<Candle>): BigDecimal =
+        history.map { it.body() }
+            .reduce(BigDecimal::add)
+            .divide(BigDecimal(history.size), 8, RoundingMode.HALF_EVEN)
 
     private fun Candle.body(): BigDecimal = (open - close).abs()
 }
